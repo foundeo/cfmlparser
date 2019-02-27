@@ -24,6 +24,11 @@ component accessors="false" {
 		arrayAppend(variables.children, child);
 	}
 
+	public void function setParent(parent) {
+		variables.hasParent = true;
+		variables.parent = arguments.parent;
+	}
+
 	public array function getExpressions() {
 		return [];
 	}

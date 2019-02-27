@@ -52,7 +52,27 @@ component extends="AbstractParser" {
 						} else {
 							tag.setEndPosition(gtPos);
 						}
-						
+						if (tagName == "cfscript") {
+							//cfscript, jump to end of script block
+							//todo run inner contents through ScriptParser
+							local.scriptContent = left(content, gtPos);
+							//replace all code before script block with whitespace except newlines
+							//this will preserve line / character positions
+							local.scriptContent = reReplace(local.scriptContent, "[^#Chr(10)##Chr(13)#]", " ", "ALL");
+							local.scriptContent = local.scriptContent & mid(content, gtPos+1, endTagPos-gtPos-1);
+							local.scriptBlockFile = new File(fileContent=local.scriptContent, parser="script");
+							for (local.scriptStatement in local.scriptBlockFile.getStatements()) {
+								if (!local.scriptStatement.hasParent()) {
+									tag.addChild(local.scriptStatement);
+									local.scriptStatement.setParent(tag);
+								}
+								addStatement(local.scriptStatement);
+							}
+							
+							
+							ltPos = endTagPos;
+							continue;
+						}
 					} else {
 						tag.setEndPosition(gtPos);
 					}

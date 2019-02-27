@@ -5,7 +5,7 @@ component {
 	variables.isScript = false;
 	variables.fileLength = 0;
 
-	function init(string filePath="", string fileContent="") {
+	function init(string filePath="", string fileContent="", string parser="detect") {
 		if (len(arguments.fileContent) == 0 && len(arguments.filePath) > 0) {
 			variables.fileContent = fileRead(filePath);
 		} else {
@@ -14,32 +14,38 @@ component {
 		variables.filePath = arguments.filePath;
 		variables.fileLength = len(variables.fileContent);
 
-		local.hasScriptComponentPattern = reFindNoCase("component[^>]*{", variables.fileContent);
-		local.hasTagComponentPattern = !findNoCase("<" & "cfcomponent", variables.fileContent);
-		if (local.hasTagComponentPattern && !local.hasTagComponentPattern) {
-			//script cfc
-			variables.isScript = true;
-			
-		} else if (local.hasTagComponentPattern && local.hasScriptComponentPattern) {
+		if (arguments.parser == "detect") {
+			local.hasScriptComponentPattern = reFindNoCase("component[^>]*{", variables.fileContent);
+			local.hasTagComponentPattern = !findNoCase("<" & "cfcomponent", variables.fileContent);
+			if (local.hasTagComponentPattern && !local.hasTagComponentPattern) {
+				//script cfc
+				variables.isScript = true;
+				
+			} else if (local.hasTagComponentPattern && local.hasScriptComponentPattern) {
 
-			//possible that cfcomponent it could be in a comment
-			if (reFindNoCase("//[^\n]*cfcomponent[^\n]*[\n]", variables.fileContent)) {
-				variables.isScript = true;
-			}
-			
-			else if (!reFindNoCase("<" & "cffunction", variables.fileContent) && !reFindNoCase("<" & "cfproperty", variables.fileContent)) {
-				//if it does not have a cffunction or cfproperty assume scritp
-				variables.isScript = true;
+				//possible that cfcomponent it could be in a comment
+				if (reFindNoCase("//[^\n]*cfcomponent[^\n]*[\n]", variables.fileContent)) {
+					variables.isScript = true;
+				}
+				
+				else if (!reFindNoCase("<" & "cffunction", variables.fileContent) && !reFindNoCase("<" & "cfproperty", variables.fileContent)) {
+					//if it does not have a cffunction or cfproperty assume scritp
+					variables.isScript = true;
+				} else {
+					variables.isScript=false;
+				}
+
 			} else {
-				variables.isScript=false;
+				//tag based file
+				variables.isScript = false;
 			}
-
-		}
-
-		else {
-			//tag based file
+		} else if (parser == "script") {
+			variables.isScript = true;
+		} else {
 			variables.isScript = false;
 		}
+
+		
 
 		if (variables.isScript) {
 			variables.parser = new ScriptParser();
@@ -138,6 +144,43 @@ component {
 			}
 		}
 		return stmts;
+	}
+
+	public array function getStatementsAtPosition(numeric pos) {
+		var s = "";
+		var stmts = [];
+		for (s in getStatements()) {
+			if (s.getStartPosition() <= arguments.pos && s.getEndPosition() >=pos) {
+				arrayAppend(stmts, s);
+			}
+		}
+		return stmts;
+	}
+
+	public boolean function hasStatementAtPosition(numeric pos) {
+		var s = "";
+		var stmts = [];
+		for (s in getStatements()) {
+			if (s.getStartPosition() <= arguments.pos && s.getEndPosition() >=pos) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public function getStatementAtPosition(numeric pos) {
+		var stmts = getStatementsAtPosition(arguments.pos);
+		if (arrayLen(stmts) != 0) {
+			local.stmt = stmts[1];
+			for (local.s in stmts) {
+				if (local.s.getStartPosition() > local.stmt.getStartPosition()) {
+					local.stmt = local.s;
+				}
+			}
+			return local.stmt;
+		} else {
+			return javaCast("null", "");
+		}
 	}
 
 }
