@@ -246,72 +246,7 @@ component extends="Statement" {
 	}
 
 	
-	public array function getExpressionsFromString(string string) {
-		var result = arrayNew(1);
-		var pos = 0;
-		var c = "";
-		var hashStack = 0;
-		var parenStack = 0;
-		var bracketStack = 0;
-		var inSingleQuote = false;
-		var inDoubleQuote = false;
-		var inExpression = false;
-		var expr = "";
-		var next = "";
-		var expressionStartPos = 0;
-		/*  
-				Cases to handle: 
-					"#foo()#" 
-					#foo(moo(), boo, "#x#")#
-					#foo("#moo("#shoe#")#")#
-					#foo["x#i#"]#
-					#foo(#moo()#)#
-					"Number ##1"
-					"Number ###getNumber()#"
-					#foo[bar[car[far]]]# 
-		*/
-		for ( pos=1 ; pos<=len(arguments.string) ; pos++ ) {
-			c = Mid(arguments.string, pos, 1);
-			if ( inExpression ) {
-				expr.append(c);
-			}
-			if ( c == "##" ) {
-				if ( !inExpression ) {
-					//  start of expr 
-					if ( pos < len(arguments.string) ) {
-						next = Mid(arguments.string, pos+1, 1);
-					} else {
-						next = "";
-					}
-					if ( next != "##" ) {
-						inExpression = true;
-						expr = createObject("java", "java.lang.StringBuilder").init(c);
-						expressionStartPos = pos;
-					}
-				} else if ( bracketStack == 0 && parenStack == 0 ) {
-					//  end of expr 
-					inExpression = false;
-					arrayAppend(result, {"expression"=expr.toString(), "position"=expressionStartPos});
-				}
-			} else if ( inExpression ) {
-				switch ( c ) {
-					case  "(":
-						parenStack = parenStack + 1;
-						break;
-					case  ")":
-						parenStack = parenStack - 1;
-						break;
-					case  "[":
-						bracketStack = bracketStack + 1;
-						break;
-					case  "]":
-						bracketStack = bracketStack - 1;
-						break;
-				}
-			}
-		}
-		return result;
-	}
+
 
 	public array function getExpressions() {
 		var expr = "";
@@ -338,7 +273,7 @@ component extends="Statement" {
 				expr = getExpressionsFromString(getStrippedInnerContent(stripComments=true, stripCFMLTags=true));
 				if ( arrayLen(expr) ) {
 					for ( e in expr ) {
-						e.position = e.position + getInnerContentStartPosition();
+						e.position = e.position + getInnerContentStartPosition() - 1;
 						arrayAppend(variables.expressions, e);
 					}
 				}
@@ -350,8 +285,12 @@ component extends="Statement" {
 	string function getStrippedInnerContent(boolean stripComments="true", boolean stripCFMLTags="false") {
 		var l = StructNew();
 		var innerContent = getInnerContent();
+		var cacheKey = "strippedInnerContent" & ((stripComments) ? "Comments" : "") & ((stripCFMLTags) ? "Tags" : "");
+		if (structKeyExists(variables, cacheKey)) {
+			return variables[cacheKey];
+		}
 		if ( arguments.stripComments && hasInnerContent() ) {
-			if ( !StructKeyExists(variables, "strippedInnerContent") ) {
+			if ( !StructKeyExists(variables, cacheKey) ) {
 				l.found = Find("<"&"!---", innerContent);
 				if ( l.found ) {
 					l.content = "";
@@ -362,16 +301,17 @@ component extends="Statement" {
 						if ( l.c == "<" ) {
 							if ( Mid(innerContent, l.i, 5) == "<!---" ) {
 								l.inComment = l.inComment + 1;
+								l.content = l.content & " ";
 							} else if ( l.inComment == 0 ) {
 								l.content = l.content & "<";
 							} else {
 								l.content = l.content & " ";
 							}
 						} else if ( l.c == ">" && l.inComment > 0 && l.i >= 4 ) {
-							if ( Mid(innerContent, l.i-4, 4) == "--->" ) {
+							if ( Mid(innerContent, l.i-3, 4) == "--->" ) {
 								l.inComment = l.inComment - 1;
-							}
-							if ( l.inComment == 0 ) {
+								l.content = l.content & " ";
+							} else if ( l.inComment == 0 ) {
 								l.content = l.content & ">";
 							} else {
 								l.content = l.content & " ";
@@ -387,22 +327,19 @@ component extends="Statement" {
 							l.content = l.content & l.c;
 						}
 					}
-					variables.strippedInnerContent = l.content;
-				} else {
-					//  no comments 
-					variables.strippedInnerContent = innerContent;
-				}
+					innerContent = l.content;
+				} 
 			}
 			if ( arguments.stripCFMLTags ) {
-				l.stripResult = variables.strippedInnerContent;
+				l.stripResult = innerContent;
 				for ( l.match in reMatchNoCase("</?cf[^>]+>", l.stripResult) ) {
 					l.replace = repeatString(" ", len(l.match));
 					l.stripResult = replace(l.stripResult, l.match, l.replace, "all");
 				}
-				return l.stripResult;
+				innerContent = l.stripResult;
 			}
-			return variables.strippedInnerContent;
 		}
+		variables[cacheKey] = innerContent;
 		return innerContent;
 	}
 

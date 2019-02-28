@@ -117,6 +117,14 @@ component extends="BaseTest" {
 
 	}
 
+	function testGetStrippedInnerContentComment() {
+		var parser = getParser("tag/cfoutput-comment.cfm");
+		var statements = parser.getStatements();
+		var tag = statements[1];
+		$assert.isEqual("cfoutput", tag.getName());
+		$assert.isEqual("Here is some output: ##doIt()##", trim(tag.getStrippedInnerContent(stripComments=true)));
+	}
+
 
 
 }

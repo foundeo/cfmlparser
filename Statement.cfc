@@ -102,4 +102,85 @@ component accessors="false" {
 		return rtn;
 	}
 
+	public array function getExpressionsFromString(string string) {
+		var result = arrayNew(1);
+		var pos = 0;
+		var c = "";
+		var hashStack = 0;
+		var parenStack = 0;
+		var bracketStack = 0;
+		var inSingleQuote = false;
+		var inDoubleQuote = false;
+		var inExpression = false;
+		var expr = "";
+		var next = "";
+		var prev = "";
+		var prevPoundEndedExpression = false;
+		var expressionStartPos = 0;
+		/*  
+				Cases to handle: 
+					"#foo()#" 
+					#foo(moo(), boo, "#x#")#
+					#foo("#moo("#shoe#")#")#
+					#foo["x#i#"]#
+					#foo(#moo()#)#
+					"Number ##1"
+					"Number ##1 - ##5"
+					"Number ###getNumber()#"
+					#foo[bar[car[far]]]# 
+		*/
+		for ( pos=1 ; pos<=len(arguments.string) ; pos++ ) {
+			c = Mid(arguments.string, pos, 1);
+			if ( inExpression ) {
+				expr.append(c);
+			}
+			if ( c == "##" ) {
+				if ( !inExpression ) {
+					//  start of expr 
+					if ( pos < len(arguments.string) ) {
+						next = Mid(arguments.string, pos+1, 1);
+					} else {
+						next = "";
+					}
+					if ( pos > 1) {
+						prev = Mid(arguments.string, pos-1, 1);
+					}
+					if ( next != "##" && (prev != "##" || prevPoundEndedExpression) ) {
+						inExpression = true;
+						prevPoundEndedExpression = false;
+						expr = createObject("java", "java.lang.StringBuilder").init(c);
+						expressionStartPos = pos;
+					} else if (next=="##" && prev=="##" && !prevPoundEndedExpression) {
+						//for Number ###n#
+						//            ^
+						prevPoundEndedExpression = true;
+					} else {
+						prevPoundEndedExpression = false;
+					}
+				} else if ( bracketStack == 0 && parenStack == 0 ) {
+					//  end of expr 
+					inExpression = false;
+					prevPoundEndedExpression = true;
+					arrayAppend(result, {"expression"=expr.toString(), "position"=expressionStartPos});
+				}
+			} else if ( inExpression ) {
+				switch ( c ) {
+					case  "(":
+						parenStack = parenStack + 1;
+						break;
+					case  ")":
+						parenStack = parenStack - 1;
+						break;
+					case  "[":
+						bracketStack = bracketStack + 1;
+						break;
+					case  "]":
+						bracketStack = bracketStack - 1;
+						break;
+				}
+			}
+		}
+		return result;
+	}
+
 }
