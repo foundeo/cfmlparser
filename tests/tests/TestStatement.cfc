@@ -35,6 +35,19 @@ component extends="BaseTest" {
 		$assert.isEqual(24, expressions[1].position);
 
 	}
+
+	function testSiblings() {
+		var parser = getParser("tag/sibling.cfm");
+		var statements = parser.getStatements();
+		$assert.isEqual("cfset", statements[1].getName(), "Name should be cfset");
+		$assert.isEqual("cfif", statements[2].getName(), "Name should be cfif");
+		$assert.isTrue(statements[2].isSibling(statements[1]));
+		$assert.isTrue(statements[1].isSibling(statements[2]));
+		$assert.isFalse(statements[1].isSibling(statements[3]));
+		$assert.isTrue(statements[3].isSibling(statements[4]));
+		$assert.isTrue(statements[4].isSibling(statements[3]));
+
+	}
 	
 
 }

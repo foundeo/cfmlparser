@@ -90,6 +90,21 @@ component accessors="false" {
 		return arrayLen(variables.children) > 0;
 	}
 
+	public boolean function isSibling(stmt) {
+		if (!this.hasParent() && !arguments.stmt.hasParent()) {
+			return true;
+		}
+		if (this.hasParent() != arguments.stmt.hasParent()) {
+			return false;
+		}
+		if (this.getParent().getStartPosition() == arguments.stmt.getParent().getStartPosition()) {
+			if (this.getParent().getEndPosition() == arguments.stmt.getParent().getEndPosition()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/* for debugging */
 	function getVariables() {
 		var rtn = {};

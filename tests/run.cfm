@@ -17,6 +17,7 @@
 		errors       = resultObject.getTotalFail() + resultObject.getTotalError();
 		exitCode( errors ? 1 : 0 );
 	} catch ( any e ) {
+		cfheader(statuscode="500", statustext="Server Error");
 		writeOutput( "An error occurred running the tests. Message: [#e.message#], Detail: [#e.detail#]" );
 		exitCode( 1 );
 	}
