@@ -119,6 +119,18 @@ component extends="AbstractParser" {
 					} else {
 						sb.append(";");
 					}
+				} else if (c==chr(13)) {
+					if (currentState == this.STATE.STATEMENT) {
+						if (isValidStatement(sb.toString())) {
+							currentState = this.STATE.NONE;
+							currentStatement.setEndPosition(pos);
+							sb.setLength(0);
+						} else {
+							sb.append(c);
+						}
+					} else {
+						sb.append(c);
+					}
 				} else if (currentState == this.STATE.NONE) {
 					
 					if (reFind("[a-z_]", c)) {
@@ -224,9 +236,6 @@ component extends="AbstractParser" {
 							quotePos = reFind("['""]", content, pos+1);
 							temp = reFind("[^a-zA-Z0-9_.]*function[\t\r\n ]+[a-zA-Z_]", content, pos);
 							
-							if(pos == 41) {
-								//throw(message="sb=#sb.toString()#|" &serializeJSON(local))
-							}
 
 							if (temp == 0) {
 								//no function keyword found ahead
@@ -297,6 +306,34 @@ component extends="AbstractParser" {
 		}
 
 	}
+
+	private boolean function isValidStatement(string text) {
+		var openParens=countOccurrances("(", arguments.text);
+		var closeParens=countOccurrances(")", arguments.text);
+		var openCurlyBrace=countOccurrances("{", arguments.text);
+		var closeCurlyBrace=countOccurrances("}", arguments.text);
+		var openSqBrace=countOccurrances("[", arguments.text);
+		var closeSqBrace=countOccurrances("]", arguments.text);
+		if (openParens == closeParens && openCurlyBrace == closeCurlyBrace && openSqBrace == closeSqBrace) {
+			//is balanced
+			//now it should have an = or () or ++ or -- or {}
+			if (countOccurrances("=", arguments.text) > 0) {
+				return true;
+			}
+			if (openParens > 0) {
+				return true;
+			}
+			local.rightEnd = right(trim(arguments.text), 2);
+			if (rightEnd == "++" || rightEnd=="--") {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	function countOccurrances(needle, haystack) {
+        return len(haystack) - len(replace(haystack, needle, "", "all"));
+    }
 
 	boolean function isScript() {
 		return true;
