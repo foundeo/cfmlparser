@@ -24,4 +24,57 @@ component extends="Statement" accessors="false" {
 	public boolean function isFunction() {
 		return getName() == "function";
 	}
+
+	public string function getTagName() { 
+		if (getName() == "statement") {
+			if (left(trim(getText()), 2) == "cf") {
+				if (reFindNoCase("^\s*cf[a-z]{4,26}\s*\(", getText())) {
+					return reReplaceNoCase(getText(),"\s*(cf[a-z]{4,16})\s*\(.+" , "\1");
+				}
+			}
+		}
+		return "";
+	}
+
+	public boolean function isScriptModeTag() {
+		if (left(getTagName(), 2) == "cf") {
+			return true;
+		}
+		return false;
+	}
+
+	public string function getAttributeContent() {
+		if (!structKeyExists(variables, "attributeContent")) {
+			variables.attributeContent = "";
+			local.endPos = reFind("\)\s*;?\s*$", getText());
+			if (local.endPos != 0) {
+				variables.attributeContent = reReplaceNoCase(getText(), "\s*cf[a-z]{4,16}\s*\((.+)\)\s*;?\s*$", "\1");
+			} else if (reFind("}\s*$", getText())) {
+				local.endPos = reFind("\s*cf[a-z]{4,16}\s*\([^\{]+\)\s*{", getText());
+				if (local.endPos != 0) {
+					variables.attributeContent = reReplaceNoCase(getText(), "\s*cf[a-z]{4,16}\s*\(([^\{]+)\)\s*{.*", "\1");
+				}
+			}
+		}
+		return variables.attributeContent;
+
+	}
+
+	public boolean function hasAttributes() {
+		if (isScriptModeTag()) {
+			if (reFindNoCase("^\s*cf[a-z]{4,26}\s*\(\s*[^\)]", getText())) {
+					return true;
+			}
+		}
+		return false;
+	}
+
+	public array function getExpressions() {
+		if (hasAttributes()) {
+			return variables.attributeExpressions;
+		} else {
+			return super.getExpressions();
+		}
+
+	}
 }

@@ -68,6 +68,36 @@ component extends="BaseTest" {
 
 	}
 
+	function testScriptTags() {
+		var parser = getParser("script/tag.cfc");
+		var statements = parser.getStatements();
+		var stmt = "";
+		var foundCFHeader = false;
+		var scriptModeTags = 0;
+		for (stmt in statements) {
+			if (stmt.getTagName() == "cfheader") {
+				foundCFHeader = true;
+				$assert.isTrue(stmt.hasAttributes(), "cfheader should have attributes");
+				local.attribs = stmt.getAttributes();
+				$assert.key(local.attribs, "name", "cfheader should have name attribute");
+				$assert.isEqual("foo", local.attribs.name);
+
+				$assert.key(local.attribs, "value", "cfheader should have value attribute");
+				$assert.isEqual("##boo##", local.attribs.value);
+
+			}
+			if (stmt.isScriptModeTag()) {
+				scriptModeTags++;
+			}
+		}
+
+		$assert.isTrue(foundCFHeader, "should find cfheader");
+
+		$assert.isEqual(3, scriptModeTags, "Only found #scriptModeTags# script mode tags");
+
+		debug(statements);
+	}
+
 	
 
 }

@@ -7,7 +7,7 @@
 	<cfset codeFile = new cfmlparser.File(fileContent=form.code)>
 	<cfset statements = codeFile.getStatements()>
 	<cfloop array="#statements#" index="stmt">
-		<cfdump var="#{vars:stmt.getVariables(), text:stmt.getText(), expr:stmt.getExpressions()}#" expand="false" label="#stmt.getName()#">
+		<cfdump var="#{attr: stmt.getAttributes(), text:stmt.getText(), expr:stmt.getExpressions(), vars:stmt.getVariables()}#" expand="false" label="#stmt.getName()#">
 
 	</cfloop>
 

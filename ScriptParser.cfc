@@ -94,9 +94,19 @@ component extends="AbstractParser" {
 					}
 				} else if (c == "{") {
 					if (currentState == this.STATE.STATEMENT) {
-						//a closure?
-						currentState = this.STATE.CLOSURE;
-						sb.append(c);
+						//a closure or script mode tag?
+						//check against tags that can have inner content
+						if (reFindNoCase("\s*cf(output|mail|savecontent|query|document|pdf|htmltopdf|htmltopdfitem|form|storedproc|chart|client|div|documentitem|documentsection|formgroup|grid|http|imap|invoke|layout|lock|login|map|menu|module|pod|presentation|thread\report|silent|table|textarea|timer|transaction|tree|zip|window|xml)\s*\([^{]+\)\s*$", sb.toString())) {
+							//script tag that can have body
+							currentStatement.setBodyOpen(pos);
+							parent = currentStatement;
+							currentState = this.STATE.NONE;
+							sb.setLength(0);
+						} else {
+							currentState = this.STATE.CLOSURE;
+							sb.append(c);	
+						}
+						
 					} else {
 						currentStatement.setBodyOpen(pos);
 						parent = currentStatement;
