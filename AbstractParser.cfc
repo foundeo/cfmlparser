@@ -5,7 +5,7 @@ component {
 		return this;
 	}
 
-	public function parse(string fileContent) {
+	public function parse(file, startPosition=0, endPosition=0) {
 		throw(message="The parse function is abstract, please use a child class");
 	}
 

@@ -2,7 +2,8 @@ component extends="AbstractParser" {
 
 	this.STATE = {NONE=0,COMMENT=1, IF_STATEMENT=2, ELSE_IF_STATEMENT=3, ELSE_STATEMENT=4, SWITCH_STATEMENT=5, STATEMENT=6, COMPONENT_STATEMENT=7, FOR_LOOP=8,WHILE_LOOP=9,RETURN_STATEMENT=10,CLOSURE=11,FUNCTION_STATEMENT=12};
 
-	public function parse(file) {
+	
+	public function parse(file, startPosition=0, endPosition=0) {
 		var content = arguments.file.getFileContent();
 		var contentLength = arguments.file.getFileLength();
 		var pos = 1;
@@ -23,6 +24,13 @@ component extends="AbstractParser" {
 		var currentStatementStart = 1;
 		var commentStatement = "";
 		var sb = createObject("java", "java.lang.StringBuilder");
+
+		//parsing a cfscript tag uses startPosition and endPosition
+		if (arguments.startPosition != 0 && arguments.endPosition != 0) {
+			pos = arguments.startPosition;
+			contentLength = arguments.endPosition;
+		}
+
 		while(pos<=contentLength) {
 			c = mid(content, pos, 1);
 			

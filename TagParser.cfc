@@ -1,6 +1,6 @@
 component extends="AbstractParser" {
 
-	public function parse(file) {
+	public function parse(file, startPosition=0, endPosition=0) {
 		var tagName = "";
 		var charPos = 0;
 		var spacePos = 0;
@@ -52,15 +52,12 @@ component extends="AbstractParser" {
 						} else {
 							tag.setEndPosition(gtPos);
 						}
-						if (tagName == "cfscript") {
-							//cfscript, jump to end of script block
-							//todo run inner contents through ScriptParser
-							local.scriptContent = left(content, gtPos);
-							//replace all code before script block with whitespace except newlines
-							//this will preserve line / character positions
-							local.scriptContent = reReplace(local.scriptContent, "[^#Chr(10)##Chr(13)#]", " ", "ALL");
-							local.scriptContent = local.scriptContent & mid(content, gtPos+1, endTagPos-gtPos-1);
-							local.scriptBlockFile = new File(fileContent=local.scriptContent, parser="script");
+						if (endTagPos != 0 && tagName == "cfscript") {
+							//cfscript block
+							
+							local.scriptBlockFile = new ScriptParser();
+							local.scriptBlockFile.parse(arguments.file, gtPos+1, endTagPos);
+							
 							for (local.scriptStatement in local.scriptBlockFile.getStatements()) {
 								if (!local.scriptStatement.hasParent()) {
 									tag.addChild(local.scriptStatement);
