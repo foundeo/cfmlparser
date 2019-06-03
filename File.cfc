@@ -82,16 +82,7 @@ component {
 	}
 
 	numeric function getLineNumber(numeric position) {
-		var i = 0;
-		var line = 1;
-		var c = "";
-		for ( i=1 ; i<=arguments.position ; i++ ) {
-			c = Mid(variables.fileContent, i, 1);
-			if ( c == Chr(10) ) {
-				line = line + 1;
-			}
-		}
-		return line;
+		return listLen(left(variables.fileContent, arguments.position), chr(10));
 	}
 
 	numeric function getPositionInLine(numeric position) {
