@@ -115,24 +115,12 @@ component {
 	}
 
 	public string function getLineContent(numeric lineNumber) {
-		var i = "";
-		var c = "";
-		var lineNum = 1;
-		var lineStart = 1;
-		var lineEnd = variables.fileLength;
-		for ( i=1 ; i<=variables.fileLength ; i++ ) {
-			c = Mid(variables.fileContent, i, 1);
-			if ( c == Chr(10) ) {
-				lineNum = lineNum + 1;
-				if ( lineNum == arguments.lineNumber + 1 ) {
-					lineEnd = i;
-					break;
-				} else if ( lineNum == arguments.lineNumber ) {
-					lineStart = i;
-				}
-			}
+		var lineArray = variables.fileContent.split(chr(10));
+		if (lineNumber < 1 || lineNumber > arrayLen(lineArray)) {
+			return "";
+		} else {
+			return lineArray[lineNumber];
 		}
-		return Mid(variables.fileContent, lineStart, lineEnd-lineStart+1);
 	}
 
 	public array function getStatementsByName(string name) {
