@@ -126,5 +126,13 @@ component extends="BaseTest" {
 	}
 
 
+	function testMixedCaseIf() {
+		var parser = getParser("tag/mixed-case-if.cfm");
+		var statements = parser.getStatements();
+		var tag = statements[1];
+		$assert.isEqual("cfif", tag.getName());
+		$assert.isEqual("bacon", trim(tag.getAttributeContent()));
+	}
+
 
 }

@@ -1,0 +1,5 @@
+a man
+a plan
+a canal
+
+panama

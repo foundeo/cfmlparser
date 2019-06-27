@@ -82,7 +82,7 @@ component {
 	}
 
 	numeric function getLineNumber(numeric position) {
-		return listLen(left(variables.fileContent, arguments.position), chr(10));
+		return listLen(left(variables.fileContent, arguments.position), chr(10), true);
 	}
 
 	numeric function getPositionInLine(numeric position) {
@@ -90,19 +90,17 @@ component {
 		var line = 1;
 		var c = "";
 		var p = 0;
-		for ( i=1 ; i<=arguments.position ; i++ ) {
-			p = p+1;
-			c = Mid(variables.fileContent, i, 1);
-			if ( c == Chr(10) ) {
-				line = line + 1;
-				if ( i != arguments.position ) {
-					p = 0;
-				}
-			} else if ( c == Chr(13) && i != arguments.position ) {
-				p = 0;
+
+		var lines = listToArray(variables.fileContent, chr(10), true);
+		for (line=1;line<=arrayLen(lines);line++) {
+			p += len(lines[line]);
+			if (p >= arguments.position) {
+				p -= len(lines[line]);
+				return arguments.position - p;
 			}
+			p++;//for the \n
 		}
-		return p;
+		return 0;
 	}
 
 	public string function getLineContent(numeric lineNumber) {

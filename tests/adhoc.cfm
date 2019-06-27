@@ -10,7 +10,7 @@
 	<p>Took: <cfoutput>#tock-tick#ms <cfif structKeyExists(request, "timer")><cfdump var="#request.timer#"></cfif></cfoutput></p>
 	<cfset statements = codeFile.getStatements()>
 	<cfloop array="#statements#" index="stmt">
-		<cfdump var="#{attr: stmt.getAttributes(), text:stmt.getText(), expr:stmt.getExpressions(), vars:stmt.getVariables()}#" expand="false" label="#stmt.getName()#">
+		<cfdump var="#{attr: stmt.getAttributes(), text:stmt.getText(), expr:stmt.getExpressions(), vars:stmt.getVariables(), startPosition:stmt.getStartPosition()}#" expand="false" label="#stmt.getName()#">
 
 	</cfloop>
 
