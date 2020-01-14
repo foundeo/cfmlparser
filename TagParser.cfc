@@ -77,26 +77,31 @@ component extends="AbstractParser" {
 					//CFML comment
 					charPos = ltPos+4;
 					endTagPos = find("--->", content, charPos);
-					nestedComment = find("<" & "!---", content, charPos);
-					if (nestedComment == 0 || nestedComment > endTagPos) {
-						//no nested comments 
-						endTagPos = endTagPos+3;
+					if (endTagPos == 0) {
+						//no ending comment was found
+						endTagPos = contentLength;
 					} else {
-						nestedComment = 0;
-						while (charPos < contentLength) {
-							c = mid(content, charPos,1);
-							if (c == "<" && mid(content, charPos, 5) == "<!---") {
-								nestedComment = nestedComment + 1;
-								charPos = charPos+4;
-							} else if (c=="-" && mid(content, charPos, 4) == "--->") {
-								nestedComment = nestedComment - 1;
-								charPos = charPos+3;
-								if (nestedComment == 0) {
-									endTagPos = charPos;
-									break;
+						nestedComment = find("<" & "!---", content, charPos);
+						if (nestedComment == 0 || nestedComment > endTagPos) {
+							//no nested comments 
+							endTagPos = endTagPos+3;
+						} else {
+							nestedComment = 0;
+							while (charPos < contentLength) {
+								c = mid(content, charPos,1);
+								if (c == "<" && mid(content, charPos, 5) == "<!---") {
+									nestedComment = nestedComment + 1;
+									charPos = charPos+4;
+								} else if (c=="-" && mid(content, charPos, 4) == "--->") {
+									nestedComment = nestedComment - 1;
+									charPos = charPos+3;
+									if (nestedComment == 0) {
+										endTagPos = charPos;
+										break;
+									}
+								} else {
+									charPos = charPos+1;	
 								}
-							} else {
-								charPos = charPos+1;	
 							}
 						}
 					}
@@ -115,6 +120,9 @@ component extends="AbstractParser" {
 					//not a CFML tag 
 					gtPos = ltPos+1;
 				}	
+			}
+			if (gtPos >= contentLength) {
+				break;
 			}
 			ltPos = find("<", content, gtPos);
 		}
