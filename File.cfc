@@ -15,9 +15,14 @@ component {
 		variables.fileLength = len(variables.fileContent);
 
 		if (arguments.parser == "detect") {
-			local.hasScriptComponentPattern = reFindNoCase("component[^>]*{", variables.fileContent);
+			local.hasScriptComponentPattern = reFindNoCase("component[^>*]*{", variables.fileContent);
+			if (local.hasScriptComponentPattern) {
+				local.componentString = mid(variables.fileContent, local.hasScriptComponentPattern, 10);
+				//must be component followed by space or {
+				local.hasScriptComponentPattern = trim(local.componentString) == "component" || local.componentString == "component{";
+			}
 			local.hasTagComponentPattern = !findNoCase("<" & "cfcomponent", variables.fileContent);
-			if (local.hasTagComponentPattern && !local.hasTagComponentPattern) {
+			if (local.hasScriptComponentPattern && !local.hasTagComponentPattern) {
 				//script cfc
 				variables.isScript = true;
 				

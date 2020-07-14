@@ -54,7 +54,12 @@ component extends="Statement" {
 				variables.attributeContent = "";
 			} else {
 				variables.attributeContent = mid(getFile().getFileContent(), getStartPosition()+1, getStartTagEndPosition()-getStartPosition()-1);
-				variables.attributeContent = reReplaceNoCase(variables.attributeContent, "^[[:space:]]*" & regexEscape(getName()), "");
+				try {
+					variables.attributeContent = reReplaceNoCase(variables.attributeContent, "^[[:space:]]*" & regexEscape(getName()), "");
+				} catch (any e) {
+					throw(message=e.message & "name:#getName()# ac:#variables.attributeContent#");
+				}
+				
 			}
 			
 		}

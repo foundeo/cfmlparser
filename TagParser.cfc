@@ -29,7 +29,7 @@ component extends="AbstractParser" {
 				//invalid tag
 				break;
 			}
-			tagNameEndPos = gtPos;
+			tagNameEndPos = gtPos; 
 			if (spacePos != 0 && spacePos < gtPos) {
 				tagNameEndPos = spacePos;
 			}
@@ -37,6 +37,11 @@ component extends="AbstractParser" {
 				//ignore this case non alpha tag
 			} else {
 				tagName = LCase( Trim( subString(content, charPos, tagNameEndPos) ) );
+				//cfif or cfelseif can omit spaces, eg cfif(true) and will be valid
+				if (find("(", tagName)) {
+					tagNameEndPos = find("(", content, ltPos+1);
+					tagName = LCase( Trim( subString(content, charPos, tagNameEndPos) ) );
+				}
 				if (left(tagName, 2) == "cf") {
 					tag = new Tag(name=tagName, startPosition=ltPos, parent=parent, file=arguments.file);
 					tag.setStartTagEndPosition(gtPos);
