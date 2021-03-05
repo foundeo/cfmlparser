@@ -147,4 +147,17 @@ component extends="BaseTest" {
 		return getFile(arguments.template).getParser();
 	}
 
+	function testNestedTagQuotes() {
+		var parser = getParser("tag/nested-tag-quotes.cfm");
+		var statements = parser.getStatements();
+		var tag = "";
+		
+		$assert.isGT(arrayLen(statements), 0);
+		tag = statements[1];
+		$assert.isEqual("cfquery", tag.getName());
+		tag = statements[arrayLen(statements)];
+		$assert.isEqual("cfset", tag.getName());
+
+	}
+
 }

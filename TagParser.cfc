@@ -138,7 +138,7 @@ component extends="AbstractParser" {
 		var c = "";
 		var inDouble = false;
 		var inSingle = false;
-		var inPound = false;
+		var poundStack = [];
 		if (arguments.startPosition >= contentLength) {
 			return arguments.contentLength;
 		}
@@ -158,14 +158,28 @@ component extends="AbstractParser" {
 				inSingle = !inSingle;
 			} else if (c == "##") {
 				//if next char is also a pound then it is escaped so ignore it
+				// attr="#test(moo='#foo("'")#')#"
+				
 				if (mid(arguments.content, pos+1,1) != "##") {
-					inPound = !inPound;
+					if (arrayLen(poundStack) == 0 || (inSingle || inDouble)) {
+						//starting a new pound nest, push to stack
+						arrayAppend(poundStack, {inSingle=inSingle, inDouble=inDouble});
+						inSingle=false;
+						inDouble=false;
+					} else if (arrayLen(poundStack)) {
+						//closing a pound
+						local.pound = poundStack[arrayLen(poundStack)];
+						inSingle = local.pound.inSingle;
+						inDouble = local.pound.inDouble;
+						//pop pound stack
+						arrayDeleteAt(poundStack, arrayLen(poundStack));
+					}
 				} else {
 					pos = pos+2;
 					continue;
 				}
 
-			} else if (c == ">" && !inSingle && !inDouble && !inPound) {
+			} else if (c == ">" && !inSingle && !inDouble && arrayLen(poundStack)==0) {
 				return pos;
 			}
 			pos++;
