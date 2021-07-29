@@ -43,6 +43,10 @@ component extends="AbstractParser" {
 					tagName = LCase( Trim( subString(content, charPos, tagNameEndPos) ) );
 				}
 				if (left(tagName, 2) == "cf") {
+					if (right(tagName,1) == "/") {
+						//self closing tag without space
+						tagName = left(tagName, len(tagName)-1);
+					}
 					tag = new Tag(name=tagName, startPosition=ltPos, parent=parent, file=arguments.file);
 					tag.setStartTagEndPosition(gtPos);
 					addStatement(tag);
@@ -139,7 +143,7 @@ component extends="AbstractParser" {
 		var inDouble = false;
 		var inSingle = false;
 		var poundStack = [];
-		if (arguments.startPosition >= contentLength) {
+		if (arguments.startPosition >= arguments.contentLength) {
 			return arguments.contentLength;
 		}
 		while (pos < arguments.contentLength) {

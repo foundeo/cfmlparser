@@ -7,7 +7,7 @@ component {
 
 	function init(string filePath="", string fileContent="", string parser="detect") {
 		if (len(arguments.fileContent) == 0 && len(arguments.filePath) > 0) {
-			variables.fileContent = fileRead(filePath);
+			variables.fileContent = fileRead(arguments.filePath);
 		} else {
 			variables.fileContent = arguments.fileContent;
 		}
@@ -110,10 +110,10 @@ component {
 
 	public string function getLineContent(numeric lineNumber) {
 		var lineArray = variables.fileContent.split(chr(10));
-		if (lineNumber < 1 || lineNumber > arrayLen(lineArray)) {
+		if (arguments.lineNumber < 1 || arguments.lineNumber > arrayLen(lineArray)) {
 			return "";
 		} else {
-			return lineArray[lineNumber];
+			return lineArray[arguments.lineNumber];
 		}
 	}
 
@@ -132,7 +132,7 @@ component {
 		var s = "";
 		var stmts = [];
 		for (s in getStatements()) {
-			if (s.getStartPosition() <= arguments.pos && s.getEndPosition() >=pos) {
+			if (s.getStartPosition() <= arguments.pos && s.getEndPosition() >= arguments.pos) {
 				arrayAppend(stmts, s);
 			}
 		}

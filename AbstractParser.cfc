@@ -10,7 +10,7 @@ component {
 	}
 
 	public function addStatement(s) {
-		arrayAppend(variables.statements, s);
+		arrayAppend(variables.statements, arguments.s);
 	}
 
 	public function getStatements() {

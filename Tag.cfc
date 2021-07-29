@@ -136,7 +136,7 @@ component extends="Statement" {
 	string function getStrippedInnerContent(boolean stripComments="true", boolean stripCFMLTags="false") {
 		var l = StructNew();
 		var innerContent = getInnerContent();
-		var cacheKey = "strippedInnerContent" & ((stripComments) ? "Comments" : "") & ((stripCFMLTags) ? "Tags" : "");
+		var cacheKey = "strippedInnerContent" & ((arguments.stripComments) ? "Comments" : "") & ((arguments.stripCFMLTags) ? "Tags" : "");
 		if (structKeyExists(variables, cacheKey)) {
 			return variables[cacheKey];
 		}

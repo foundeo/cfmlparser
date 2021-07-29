@@ -23,7 +23,7 @@ component accessors="false" {
 	}
 
 	public void function addChild(child) {
-		arrayAppend(variables.children, child);
+		arrayAppend(variables.children, arguments.child);
 	}
 
 	public void function setParent(parent) {
