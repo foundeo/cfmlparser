@@ -16,15 +16,44 @@ component extends="AbstractParser" {
 		var endTagPos = 0;
 		var nextTagPos = 0;
 		var parent = "";
+		var endPosMap = structNew();
+		var i = 0;
+		//var charMatcher = createObject("java", "java.util.regex.Pattern" ).compile("[!/a-zA-Z]").matcher(content);
+		//var spaceMatcher = createObject("java", "java.util.regex.Pattern" ).compile("[[:space:]]").matcher(content);
 
 		while (ltPos != 0) {
-			charPos = ReFind("[!/a-zA-Z]", content, ltPos+1);
-			spacePos = ReFind("[[:space:]]", content, ltPos+1);
+			c = asc(mid(content, ltPos+1, 1));
+			if ( (c >= 97 && c<= 122) || c == 47 || c == 33 || (c >= 65 && c <= 90) ) {
+				charPos = ltPos+1;
+			} else {
+				charPos = ReFind("[!/a-zA-Z]", content, ltPos+1);
+			}
+		
+			//spacePos = ReFind("[[:space:]]", content, ltPos+1); the following is faster...
+			spacePos = 0;
+			for(i=ltPos+1;i<=contentLength;i++) {
+				c = asc(mid(content, i, 1));
+				if (c <= 32) {
+					spacePos = i;
+					break;
+				}
+			}
+				
+			
 			if (charPos > spacePos) {
 				//have whitespace before tag name < tag>
-				spacePos = ReFind("[[:space:]]", content, charPos+1);
+				//spacePos = ReFind("[[:space:]]", content, charPos+1);
+				spacePos = 0;
+				for(i=charPos+1;i<=contentLength;i++) {
+					c = asc(mid(content, i, 1));
+					if (c <= 32) {
+						spacePos = i;
+						break;
+					}
+				}
 			}
 			gtPos = getTagEndPosition(content, contentLength, ltPos+1);
+			
 			if (gtPos == 0) {
 				//invalid tag
 				break;
@@ -55,7 +84,24 @@ component extends="AbstractParser" {
 						parent.addChild(tag);
 					}
 					if (tag.couldHaveInnerContent()) {
-						endTagPos = reFindNoCase("<[[:space:]]*/[[:space:]]*#reReplace(tagName, "[^[:alnum:]_]", "", "ALL")#[[:space:]]*>", content, gtPos);
+						//replaced these regex with java matcher for 5x performance
+						//endTagPos = reFindNoCase("<[[:space:]]*/[[:space:]]*#reReplace(tagName, "[^[:alnum:]_]", "", "ALL")#[[:space:]]*>", content, gtPos);
+						if (!endPosMap.keyExists(tagName)) {
+							endPosMap[tagName] = [];
+							local.matcher = createObject("java", "java.util.regex.Pattern" ).compile("<[[:space:]]*/[[:space:]]*#reReplace(tagName, "[^[:alnum:]_]", "", "ALL")#[[:space:]]*>").matcher(content);
+							local.matcher.region(gtPos-1, len(content));
+							while(local.matcher.find()) {
+								arrayAppend(endPosMap[tagName], local.matcher.start()+1);
+							}
+						}
+						endTagPos = 0;
+						for (i in endPosMap[tagName]) {
+							if (i > gtPos) {
+								endTagPos = i;
+								break;
+							}
+						}
+						
 						if (endTagPos != 0) {
 							parent = tag;
 						} else {
@@ -63,7 +109,6 @@ component extends="AbstractParser" {
 						}
 						if (endTagPos != 0 && tagName == "cfscript") {
 							//cfscript block
-							
 							local.scriptBlockFile = new ScriptParser();
 							local.scriptBlockFile.parse(arguments.file, gtPos+1, endTagPos);
 							
@@ -79,6 +124,7 @@ component extends="AbstractParser" {
 							ltPos = endTagPos;
 							continue;
 						}
+						
 					} else {
 						tag.setEndPosition(gtPos);
 					}
@@ -190,6 +236,8 @@ component extends="AbstractParser" {
 		}
 		return pos;
 	}
+
+	
 
 
 }

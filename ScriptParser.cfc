@@ -350,7 +350,7 @@ component extends="AbstractParser" {
 	}
 
 	function countOccurrances(needle, haystack) {
-        return len(haystack) - len(replace(haystack, needle, "", "all"));
+        return len(arguments.haystack) - len(replace(arguments.haystack, arguments.needle, "", "all"));
     }
 
 	boolean function isScript() {
