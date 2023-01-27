@@ -284,19 +284,30 @@ component accessors="false" {
 					mode = "attributeValueStart";
 					quotedValue = "";
 				}
-				else if ( reFind("\s", c) ) {
+				else if ( len(trim(c)) == 0 ) {
 					//whitespace
+					
 					if (mode IS "attributeName") {
-						//a single attribute with no value
+						//a single attribute with no value or could be a space before the equals
 						if (len(attributeName)) {
-							variables.attributeStruct[attributeName] = "";
-							//reset for next attribute
-							attributeName = "";
-							mode = "new";
-							attributeValue = "";
+							e = find("=", variables.attributeContent, i);
+							local.tmp = "";
+							if (e) {
+								//if there is an equal in the future
+								local.tmp = mid(variables.attributeContent, i, e-i+1);
+							}
+							
+							if (e && trim(local.tmp) == "=") {
+								// space before equal sign, ignorable whitespace
+							} else {
+								variables.attributeStruct[attributeName] = "";
+								//reset for next attribute
+								attributeName = "";
+								mode = "new";
+								attributeValue = "";
+							}
 						}
-					}
-					else if (mode IS "attributeValue") {
+					} else if (mode IS "attributeValue") {
 						if (quotedValue EQ "" AND bracketStack EQ 0 AND parenStack EQ 0) {
 							//end of unquoted expr value
 							variables.attributeStruct[attributeName] = attributeValue;
@@ -314,10 +325,12 @@ component accessors="false" {
 				}
 				else if (c IS """" OR c IS "'") {
 					//quote
+					
 					if (mode == "attributeValueStart") {
 						quotedValue = c;
 						mode = "attributeValue";
 					} else if (mode IS "attributeValue") {
+						
 						if (c IS quotedValue AND NOT inExpr) {
 							//end of attribute reached
 							variables.attributeStruct[attributeName] = attributeValue;
@@ -326,6 +339,7 @@ component accessors="false" {
 								e.position = getStartPosition() + len(getName()) + i - len(attributeValue) + e.position;
 								arrayAppend(variables.attributeExpressions, e);
 							}
+							
 							//reset for next attribute
 							attributeName = "";
 							mode = "new";

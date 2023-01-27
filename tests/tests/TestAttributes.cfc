@@ -32,6 +32,25 @@ component extends="BaseTest" {
 
 	}
 
+	function testSpaceInAttributes() {
+		var parser = getParser("tag/space-in-attributes.cfm");
+		var statements = parser.getStatements();
+		var tag = "";
+		var attr = "";
+
+		tag = statements[1]; //cfdirectory
+		$assert.isEqual("cfdirectory", tag.getName(), "Name should be cfdirectory");
+		attr = tag.getAttributes();
+		//directory attribute
+		$assert.isTrue(attr.keyExists("directory"));
+		$assert.isEqual("##application.folderLocation##", attr.directory, "directory attribute should be ##application.folderLocation##");
+		//sort attribute
+		$assert.isTrue(attr.keyExists("sort"));
+		$assert.isEqual("directory asc", attr.sort, "sort attribute should be directory asc");
+
+
+	}
+
 	
 
 }
