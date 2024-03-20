@@ -83,7 +83,7 @@ component extends="AbstractParser" {
 						//has a parent, so set as child
 						parent.addChild(tag);
 					}
-					if (tag.couldHaveInnerContent()) {
+					if (tag.couldHaveInnerContent() && gtPos > 1 && mid(content, gtPos-1, 2) != "/>") {
 						//replaced these regex with java matcher for 5x performance
 						//endTagPos = reFindNoCase("<[[:space:]]*/[[:space:]]*#reReplace(tagName, "[^[:alnum:]_]", "", "ALL")#[[:space:]]*>", content, gtPos);
 						if (!endPosMap.keyExists(tagName)) {

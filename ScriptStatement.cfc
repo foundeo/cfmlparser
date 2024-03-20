@@ -26,14 +26,15 @@ component extends="Statement" accessors="false" {
 	}
 
 	public string function getTagName() { 
-		if (getName() == "statement") {
+		if (!structKeyExists(variables, "tagName")) {
+			variables.tagName = "";
 			if (left(trim(getText()), 2) == "cf") {
 				if (reFindNoCase("^\s*cf[a-z]{4,26}\s*\(", getText())) {
-					return reReplaceNoCase(getText(),"\s*(cf[a-z]{4,16})\s*\(.+" , "\1");
+					variables.tagName = reReplaceNoCase(getText(),"\s*(cf[a-z]{4,16})\s*\(.+" , "\1");
 				}
 			}
 		}
-		return "";
+		return variables.tagName;
 	}
 
 	public boolean function isScriptModeTag() {

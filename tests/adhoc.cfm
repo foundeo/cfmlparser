@@ -17,7 +17,7 @@
 	<cfset statements = codeFile.getStatements()>
 	<cfloop array="#statements#" index="stmt">
 		<cfif NOT len(form.name_filter) OR reFind(form.name_filter, stmt.getName())>
-			<cfdump var="#{attr: stmt.getAttributes(), text:stmt.getText(), expr:stmt.getExpressions(), vars:stmt.getVariables(), startPosition:stmt.getStartPosition(), isFunc:stmt.isFunction(), endPos:stmt.getEndPosition()}#" expand="#expand#" label="#stmt.getName()#">
+			<cfdump var="#{attr: stmt.getAttributes(), text:stmt.getText(), expr:stmt.getExpressions(), vars:stmt.getVariables(), startPosition:stmt.getStartPosition(), isFunc:stmt.isFunction(), endPos:stmt.getEndPosition(), name:stmt.getName()}#" expand="#expand#" label="#stmt.getName()#">
 		</cfif>
 
 	</cfloop>

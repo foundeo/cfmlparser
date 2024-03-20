@@ -1,6 +1,6 @@
 component extends="AbstractParser" {
 
-	this.STATE = {NONE=0,COMMENT=1, IF_STATEMENT=2, ELSE_IF_STATEMENT=3, ELSE_STATEMENT=4, SWITCH_STATEMENT=5, STATEMENT=6, COMPONENT_STATEMENT=7, FOR_LOOP=8,WHILE_LOOP=9,RETURN_STATEMENT=10,CLOSURE=11,FUNCTION_STATEMENT=12};
+	this.STATE = {NONE=0,COMMENT=1, IF_STATEMENT=2, ELSE_IF_STATEMENT=3, ELSE_STATEMENT=4, SWITCH_STATEMENT=5, STATEMENT=6, COMPONENT_STATEMENT=7, FOR_LOOP=8,WHILE_LOOP=9,RETURN_STATEMENT=10,CLOSURE=11,FUNCTION_STATEMENT=12,DO_WHILE_LOOP=13,TRY_BLOCK=14,CATCH_BLOCK=15,FINALLY_BLOCK=16};
 
 	
 	public function parse(file, startPosition=0, endPosition=0) {
@@ -10,6 +10,8 @@ component extends="AbstractParser" {
 		var parent = "";
 		var currentState = this.STATE.NONE;
 		var c = "";
+		var cCode = 0;
+		var lowerC = "";
 		var endPos = 0;
 		var temp = "";
 		var paren = 0;
@@ -89,6 +91,13 @@ component extends="AbstractParser" {
 					if (currentState == this.STATE.CLOSURE) {
 						currentState = this.STATE.STATEMENT;
 						sb.append(c);
+					} else if (!isSimpleValue(parent) && parent.getName() == "do" ) {
+						//end of a do / while loop
+						parent.setBodyClose(pos);
+						currentStatement = parent;
+						currentState = this.STATE.DO_WHILE_LOOP;
+						parent = currentStatement.getParent();
+						sb.setLength(0);
 					} else {
 						if (!isSimpleValue(parent)) {
 							parent.setBodyClose(pos);
@@ -110,6 +119,12 @@ component extends="AbstractParser" {
 							parent = currentStatement;
 							currentState = this.STATE.NONE;
 							sb.setLength(0);
+						} else if (reFindNoCase("\s(transaction|)\s*$", sb.toString())) {
+							currentStatement.setBodyOpen(pos);
+							
+							parent = currentStatement;
+							currentState = this.STATE.NONE;
+							sb.setLength(0);
 						} else {
 							currentState = this.STATE.CLOSURE;
 							sb.append(c);	
@@ -123,7 +138,7 @@ component extends="AbstractParser" {
 					}
 				} else if (c == ";") {
 					//TODO handle case where if/else if/else/for/while does not use {}
-					if (currentState == this.STATE.STATEMENT) {
+					if (currentState == this.STATE.STATEMENT || currentState == this.STATE.DO_WHILE_LOOP) {
 						currentState = this.STATE.NONE;
 						
 						currentStatement.setEndPosition(pos);
@@ -138,7 +153,7 @@ component extends="AbstractParser" {
 						sb.append(";");
 					}
 				} else if (c==chr(13)) {
-					if (currentState == this.STATE.STATEMENT) {
+					if (currentState == this.STATE.STATEMENT || currentState == this.STATE.DO_WHILE_LOOP) {
 						if (isValidStatement(sb.toString())) {
 							currentState = this.STATE.NONE;
 							currentStatement.setEndPosition(pos);
@@ -150,24 +165,25 @@ component extends="AbstractParser" {
 						sb.append(c);
 					}
 				} else if (currentState == this.STATE.NONE) {
-					
-					if (reFind("[a-z_]", c)) {
-						//some letter
+					lowerC = lCase(c);
+					cCode = asc(lowerC);
+					if ( (cCode >= 97 && cCode <= 122) || cCode == 95 ) {
+						//some letter reFind("[a-z_]", c)
 						
 
 						
 						sb.setLength(0);
-						if (c == "c" && mid(content, pos, 9) == "component") {
+						if (lowerC == "c" && mid(content, pos, 9) == "component") {
 							currentStatement = new ScriptStatement(name="component",startPosition=pos, file=arguments.file, parent=parent);
 							addStatement(currentStatement);
 							parent = currentStatement;
+							sb.append(mid(content, pos, 9));
 							pos = pos+9;
-							sb.append("component");
 							currentState = this.STATE.COMPONENT_STATEMENT;
 							continue;
-						} else if (c == "f" && reFind("function[\t\r\n a-zA-Z_]",  mid(content, pos, 9)) ) {
+						} else if (lowerC == "f" && reFindNoCase("function[\t\r\n a-zA-Z_]",  mid(content, pos, 9)) ) {
 							//a function without access modifier or return type
-							sb.append("function");
+							sb.append(mid(content, pos, 8));
 							currentState = this.STATE.FUNCTION_STATEMENT;
 							currentStatement = new ScriptStatement(name="function",startPosition=pos, file=arguments.file, parent=parent);
 							addStatement(currentStatement);
@@ -176,7 +192,7 @@ component extends="AbstractParser" {
 							}
 							pos = pos + 8;
 							continue;
-						} else if (c == "i" && reFind("if[\t\r\n (]",  mid(content, pos, 3))) {
+						} else if (lowerC == "i" && reFindNoCase("if[\t\r\n (]",  mid(content, pos, 3))) {
 							currentStatementStart = pos;
 							currentStatement = new ScriptStatement(name="if", startPosition=pos, file=arguments.file, parent=parent);
 							parent = currentStatement;
@@ -186,10 +202,10 @@ component extends="AbstractParser" {
 							if (!isSimpleValue(parent)) {
 								parent.addChild(currentStatement);
 							}
-							sb.append("if");
+							sb.append(mid(content, pos, 2));
 							pos = pos+2;
 							continue;
-						} else if (c == "e" && reFind("else[ \t\r\n]+if[\t\r\n (]",  content, pos) == pos) {
+						} else if (lowerC == "e" && reFindNoCase("else[ \t\r\n]+if[\t\r\n (]",  content, pos) == pos) {
 							currentStatementStart = pos;
 							currentStatement = new ScriptStatement(name="else if", startPosition=pos, file=arguments.file, parent=parent);
 							currentState = this.STATE.ELSE_IF_STATEMENT;
@@ -202,7 +218,7 @@ component extends="AbstractParser" {
 							sb.append(mid(content, pos, paren-pos));
 							pos = paren;
 							continue;
-						} else if (c == "e" && reFind("else[\t\r\n (]",  content, pos) == pos) {
+						} else if (lowerC == "e" && reFindNoCase("else[\t\r\n (]",  content, pos) == pos) {
 							currentStatementStart = pos;
 							currentStatement = new ScriptStatement(name="else", startPosition=pos, file=arguments.file, parent=parent);
 							parent = currentStatement;
@@ -211,10 +227,10 @@ component extends="AbstractParser" {
 							if (!isSimpleValue(parent)) {
 								parent.addChild(currentStatement);
 							}
-							sb.append("else");
+							sb.append(mid(content, pos, 4));
 							pos = pos+4;
 							continue;
-						} else if (c == "v" && trim(mid(content, pos, 4)) == "var") {
+						} else if (lowerC == "v" && trim(mid(content, pos, 4)) == "var") {
 							currentStatement = new ScriptStatement(name="var", startPosition=pos, file=arguments.file, parent=parent);
 							currentState = this.STATE.STATEMENT;
 							addStatement(currentStatement);
@@ -225,15 +241,87 @@ component extends="AbstractParser" {
 							sb.append("var ");
 							pos = pos + 4;
 							continue;
-						} else if (c == "r" && reFind("return[\t\r\n ;]", mid(content, pos, 7)) == pos) {
+						} else if (lowerC == "r" && reFindNoCase("return[\t\r\n ;]", mid(content, pos, 7)) == pos) {
 							currentStatement = new ScriptStatement(name="return", startPosition=pos, file=arguments.file, parent=parent);
 							currentState = this.STATE.RETURN_STATEMENT;
 							addStatement(currentStatement);
 							if (!isSimpleValue(parent)) {
 								parent.addChild(currentStatement);
 							}
-							sb.append("return");
+							sb.append(mid(content, pos, 6));
 							pos = pos + 6;
+							continue;
+						} else if (lowerC == "f" && reFindNoCase("for\s*\(",  content, pos) == pos) {
+							currentStatementStart = pos;
+							currentStatement = new ScriptStatement(name="for", startPosition=pos, file=arguments.file, parent=parent);
+							parent = currentStatement;
+							currentState = this.STATE.FOR_LOOP;
+							addStatement(currentStatement);
+							if (!isSimpleValue(parent)) {
+								parent.addChild(currentStatement);
+							}
+							sb.append(mid(content, pos, 3));
+							pos = pos+3;
+							continue;
+						} else if (lowerC == "w" && reFindNoCase("while\s*\(",  content, pos) == pos) {
+							currentStatementStart = pos;
+							currentStatement = new ScriptStatement(name="while", startPosition=pos, file=arguments.file, parent=parent);
+							parent = currentStatement;
+							currentState = this.STATE.WHILE_LOOP;
+							addStatement(currentStatement);
+							if (!isSimpleValue(parent)) {
+								parent.addChild(currentStatement);
+							}
+							sb.append(mid(content, pos, 5));
+							pos = pos+5;
+							continue;
+						} else if (lowerC == "d" && reFindNoCase("do\s*{",  content, pos) == pos) {
+							currentStatementStart = pos;
+							currentStatement = new ScriptStatement(name="do", startPosition=pos, file=arguments.file, parent=parent);
+							parent = currentStatement;
+							currentState = this.STATE.DO_WHILE_LOOP;
+							addStatement(currentStatement);
+							if (!isSimpleValue(parent)) {
+								parent.addChild(currentStatement);
+							}
+							sb.append(mid(content, pos, 2));
+							pos = pos+2;
+							continue;
+						} else if (lowerC == "t" && reFindNoCase("try\s*{",  content, pos) == pos) {
+							currentStatementStart = pos;
+							currentStatement = new ScriptStatement(name="try", startPosition=pos, file=arguments.file, parent=parent);
+							parent = currentStatement;
+							currentState = this.STATE.TRY_BLOCK;
+							addStatement(currentStatement);
+							if (!isSimpleValue(parent)) {
+								parent.addChild(currentStatement);
+							}
+							sb.append(mid(content, pos, 3));
+							pos = pos+3;
+							continue;
+						} else if (lowerC == "c" && reFindNoCase("catch\s*\(",  content, pos) == pos) {
+							currentStatementStart = pos;
+							currentStatement = new ScriptStatement(name="catch", startPosition=pos, file=arguments.file, parent=parent);
+							parent = currentStatement;
+							currentState = this.STATE.CATCH_BLOCK;
+							addStatement(currentStatement);
+							if (!isSimpleValue(parent)) {
+								parent.addChild(currentStatement);
+							}
+							sb.append(mid(content, pos, 5));
+							pos = pos+5;
+							continue;
+						} else if (lowerC == "f" && reFindNoCase("finally\s*\{",  content, pos) == pos) {
+							currentStatementStart = pos;
+							currentStatement = new ScriptStatement(name="finally", startPosition=pos, file=arguments.file, parent=parent);
+							parent = currentStatement;
+							currentState = this.STATE.CATCH_BLOCK;
+							addStatement(currentStatement);
+							if (!isSimpleValue(parent)) {
+								parent.addChild(currentStatement);
+							}
+							sb.append(mid(content, pos, 7));
+							pos = pos+7;
 							continue;
 						} else {
 							//either a statement or a function
@@ -252,7 +340,7 @@ component extends="AbstractParser" {
 							semi = find(";", content, pos+1);
 							paren = find("(", content, pos+1);
 							quotePos = reFind("['""]", content, pos+1);
-							temp = reFind("[^a-zA-Z0-9_.]*function[\t\r\n ]+[a-zA-Z_]", content, pos);
+							temp = reFindNoCase("[^a-zA-Z0-9_.]*function[\t\r\n ]+[a-zA-Z_]", content, pos);
 							
 
 							if (temp == 0) {
