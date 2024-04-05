@@ -4,6 +4,7 @@ component {
 	variables.parser = "";
 	variables.isScript = false;
 	variables.fileLength = 0;
+	variables.isComponentFile = false;
 
 	function init(string filePath="", string fileContent="", string parser="detect") {
 		if (len(arguments.fileContent) == 0 && len(arguments.filePath) > 0) {
@@ -25,6 +26,7 @@ component {
 			if (local.hasScriptComponentPattern && !local.hasTagComponentPattern) {
 				//script cfc
 				variables.isScript = true;
+				variables.isComponentFile = true;
 				
 			} else if (local.hasTagComponentPattern && local.hasScriptComponentPattern) {
 
@@ -39,17 +41,25 @@ component {
 				} else {
 					variables.isScript=false;
 				}
-
+				variables.isComponentFile = true;
 			} else {
 				//tag based file
 				variables.isScript = false;
+				if (local.hasTagComponentPattern) {
+					variables.isComponentFile = true;
+				}
 			}
 		} else if (parser == "script") {
 			variables.isScript = true;
+			
 		} else {
 			variables.isScript = false;
+			
 		}
 
+		if (!variables.isComponentFile && right(arguments.filePath, 4) == ".cfc") {
+			variables.isComponentFile = true;
+		}
 		
 
 		if (variables.isScript) {
@@ -84,6 +94,10 @@ component {
 
 	boolean function isScript() {
 		return variables.isScript;
+	}
+
+	boolean function isComponentFile() {
+		return variables.isComponentFile;
 	}
 
 	numeric function getLineNumber(numeric position) {
