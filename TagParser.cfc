@@ -88,7 +88,8 @@ component extends="AbstractParser" {
 						//endTagPos = reFindNoCase("<[[:space:]]*/[[:space:]]*#reReplace(tagName, "[^[:alnum:]_]", "", "ALL")#[[:space:]]*>", content, gtPos);
 						if (!endPosMap.keyExists(tagName)) {
 							endPosMap[tagName] = [];
-							local.matcher = createObject("java", "java.util.regex.Pattern" ).compile("<[[:space:]]*/[[:space:]]*#reReplace(tagName, "[^[:alnum:]_]", "", "ALL")#[[:space:]]*>").matcher(content);
+							local.pattern = createObject("java", "java.util.regex.Pattern");
+							local.matcher = local.pattern.compile("<[[:space:]]*/[[:space:]]*#reReplace(tagName, "[^[:alnum:]_]", "", "ALL")#[[:space:]]*>", local.pattern.CASE_INSENSITIVE).matcher(content);
 							local.matcher.region(gtPos-1, len(content));
 							while(local.matcher.find()) {
 								arrayAppend(endPosMap[tagName], local.matcher.start()+1);

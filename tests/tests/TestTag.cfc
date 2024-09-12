@@ -134,5 +134,20 @@ component extends="BaseTest" {
 		$assert.isEqual("bacon", trim(tag.getAttributeContent()));
 	}
 
+	function testMixedCaseQuery() {
+		var parser = getParser("tag/mixed-case-query.cfm");
+		var statements = parser.getStatements();
+		var tag = "";
+		$assert.isGT(arrayLen(statements), 0, "Should have tags")
+		for (tag in statements) {
+			$assert.isEqual("cfquery", tag.getName(), "Tag name should be cfquery");
+			$assert.isGT(tag.getEndTagStartPosition(), 0, "End tag position should not be zero");
+			$assert.isTrue(tag.hasInnerContent(), "Query tag should have inner conntent");
+			$assert.isTrue(tag.isInnerContentEvaluated(), "Query tag should have evaluated inner conntent");
+			$assert.isGT(len(tag.getInnerContent()), 0, "Inner Content should not be empty");
+		}
+		
+	}
+
 
 }
