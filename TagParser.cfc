@@ -142,7 +142,7 @@ component extends="AbstractParser" {
 							//no nested comments 
 							endTagPos = endTagPos+3;
 						} else {
-							nestedComment = 0;
+							nestedComment = 1;
 							while (charPos < contentLength) {
 								c = mid(content, charPos,1);
 								if (c == "<" && mid(content, charPos, 5) == "<!---") {

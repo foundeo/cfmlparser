@@ -51,6 +51,66 @@ component extends="BaseTest" {
 
 	}
 
+	function testNestedComment() {
+		var parser = getParser("tag/nested-comment.cfm");
+		var statements = parser.getStatements();
+		var tag = "";
+
+		$assert.isTrue(isArray(statements), "getStatements returns array");
+		$assert.isTrue(arrayLen(statements) == 1, "should have 1 elements: " & serializeJSON(statements));
+
+		tag = statements[1]; //should only have one comment element
+		$assert.isTrue(tag.isComment(), "isComment");
+
+	}
+
+	function testNestedDoubleComment() {
+		var parser = getParser("tag/nested-double-comment.cfm");
+		var statements = parser.getStatements();
+		var tag = "";
+
+		$assert.isTrue(isArray(statements), "getStatements returns array");
+		$assert.isTrue(arrayLen(statements) == 2, "should have 2 elements: " & serializeJSON(statements));
+
+		tag = statements[1]; //should only have one comment element
+		$assert.isTrue(tag.isComment(), "isComment");
+
+		tag = statements[2];
+		$assert.isFalse(tag.isComment(), "second tag not a comment");
+		$assert.isEqual("cfset", tag.getName());
+
+	}
+
+	function testNestedTripleComment() {
+		var parser = getParser("tag/nested-triple-comment.cfm");
+		var statements = parser.getStatements();
+		var tag = "";
+
+		$assert.isTrue(isArray(statements), "getStatements returns array");
+		$assert.isTrue(arrayLen(statements) == 2, "should have 2 elements: " & serializeJSON(statements));
+
+		tag = statements[1]; //should only have one comment element
+		$assert.isTrue(tag.isComment(), "isComment");
+
+		tag = statements[2];
+		$assert.isFalse(tag.isComment(), "second tag not a comment");
+		$assert.isEqual("cfset", tag.getName());
+
+	}
+
+	function testUnclosedComment() {
+		var parser = getParser("tag/unclosed-comment.cfm");
+		var statements = parser.getStatements();
+		var tag = "";
+
+		$assert.isTrue(isArray(statements), "getStatements returns array");
+		$assert.isTrue(arrayLen(statements) == 1, "should have 1 elements: " & serializeJSON(statements));
+
+		tag = statements[1]; //should only have one comment element
+		$assert.isTrue(tag.isComment(), "isComment");
+		
+	}
+
 	function testGtInTag() {
 		var parser = getParser("tag/gt-in-tag.cfm");
 		var statements = parser.getStatements();
