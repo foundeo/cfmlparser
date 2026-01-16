@@ -5,9 +5,11 @@
 	}
 	try {
 		if (!structKeyExists(url, "reporter")) {
-			reporter = cgi.server_protocol == "CLI/1.0" ? "text" : "simple";	
+			request.reporter = cgi.server_protocol == "CLI/1.0" ? "text" : "simple";	
+		} else if (url.reporter == "text") {
+			request.reporter = "text";
 		}
-		testbox = new testbox.system.TestBox( options={}, reporter=reporter, directory={
+		testbox = new testbox.system.TestBox( options={}, reporter=request.reporter, directory={
 			  recurse  = false
 			, mapping  = "tests"
 			, filter   = function( required path ){ return true; }
