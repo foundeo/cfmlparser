@@ -2,7 +2,8 @@
 
 A CFML Parser written in CFML
 
-[![Build Status](https://travis-ci.org/foundeo/cfmlparser.svg?branch=master)](https://travis-ci.org/foundeo/cfmlparser)
+![CI](https://github.com/foundeo/cfmlparser/actions/workflows/ci.yml/badge.svg)
+
 
 ## Basic Usage
 

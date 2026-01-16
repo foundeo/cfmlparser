@@ -42,7 +42,17 @@ component extends="Statement" {
 			//custom tag assume true
 			return true;
 		}
-		return listFindNoCase("cfoutput,cfmail,cfsavecontent,cfquery,cfdocument,cfpdf,cfhtmltopdf,cfhtmltopdfitem,cfscript,cfform,cfloop,cfif,cfelse,cfelseif,cftry,cfcatch,cffinally,cfstoredproc,cfswitch,cfcase,cfdefaultcase,cfcomponent,cffunction,cfchart,cfclient,cfdiv,cfdocumentitem,cfdocumentsection,cfformgroup,cfgrid,cfhttp,cfimap,cfinterface,cfinvoke,cflayout,cflock,cflogin,cfmap,cfmenu,cfmodule,cfpod,cfpresentation,cfthread,cfreport,cfsilent,cftable,cftextarea,cftimer,cftransaction,cftree,cfzip,cfwindow,cfxml", getName());
+		if (getName() == "cfquery") {
+			//if it has sql attribute, then no 
+			if (findNoCase("sql", getAttributeContent())) {
+				if (structKeyExists(getAttributes(), "sql")) {
+					return false;
+				}
+			}
+			return true;
+		}
+		//removed cfquery because evaluated above
+		return listFind("cfoutput,cfmail,cfsavecontent,cfdocument,cfpdf,cfhtmltopdf,cfhtmltopdfitem,cfscript,cfform,cfloop,cfif,cfelse,cfelseif,cftry,cfcatch,cffinally,cfstoredproc,cfswitch,cfcase,cfdefaultcase,cfcomponent,cffunction,cfchart,cfclient,cfdiv,cfdocumentitem,cfdocumentsection,cfformgroup,cfgrid,cfhttp,cfimap,cfinterface,cfinvoke,cflayout,cflock,cflogin,cfmap,cfmenu,cfmodule,cfpod,cfpresentation,cfthread,cfreport,cfsilent,cftable,cftextarea,cftimer,cftransaction,cftree,cfzip,cfwindow,cfxml", lcase(getName()));
 	}
 
 	public string function getAttributeContent(stripTrailingSlash=false) {
@@ -89,7 +99,10 @@ component extends="Statement" {
 		if (!hasInnerContent()) {
 			return "";
 		} else {
-			return mid(getFile().getFileContent(), getStartTagEndPosition()+1, getEndTagStartPosition()-getStartTagEndPosition()-1);
+			if (!structKeyExists(variables, "innerContent")) {
+				variables.innerContent = mid(getFile().getFileContent(), getStartTagEndPosition()+1, getEndTagStartPosition()-getStartTagEndPosition()-1);
+			}
+			return variables.innerContent;
 		}
 	}
 
@@ -223,9 +236,14 @@ component extends="Statement" {
 					ArrayAppend(vars, attrs.variable);
 				}
 				break;
-			case  "cfparam":
+			case "cfparam":
 				if ( StructKeyExists(attrs, "name") ) {
 					ArrayAppend(vars, attrs.name);
+				}
+				break;
+			case "cfinvoke":
+				if ( StructKeyExists(attrs, "returnvariable") ) {
+					ArrayAppend(vars, attrs.returnvariable);
 				}
 				break;
 		}

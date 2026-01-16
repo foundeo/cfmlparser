@@ -25,11 +25,13 @@ component extends="AbstractParser" {
 		var currentStatement = "";
 		var currentStatementStart = 1;
 		var commentStatement = "";
+		var lowerCaseContent = arguments.file.getFileContentLowerCase();
 		var sb = createObject("java", "java.lang.StringBuilder");
 
 		//parsing a cfscript tag uses startPosition and endPosition
 		if (arguments.startPosition != 0 && arguments.endPosition != 0) {
 			pos = arguments.startPosition;
+			scriptTagContent = mid(content, pos, contentLength-arguments.endPosition+1);
 			contentLength = arguments.endPosition;
 		}
 
@@ -181,7 +183,7 @@ component extends="AbstractParser" {
 							pos = pos+9;
 							currentState = this.STATE.COMPONENT_STATEMENT;
 							continue;
-						} else if (lowerC == "f" && reFindNoCase("function[\t\r\n a-zA-Z_]",  mid(content, pos, 9)) ) {
+						} else if (lowerC == "f" && reFind("function[\t\r\n a-zA-Z_]",  mid(lowerCaseContent, pos, 9)) ) {
 							//a function without access modifier or return type
 							sb.append(mid(content, pos, 8));
 							currentState = this.STATE.FUNCTION_STATEMENT;
@@ -192,7 +194,7 @@ component extends="AbstractParser" {
 							}
 							pos = pos + 8;
 							continue;
-						} else if (lowerC == "i" && reFindNoCase("if[\t\r\n (]",  mid(content, pos, 3))) {
+						} else if (lowerC == "i" && reFind("if[\t\r\n (]",  mid(lowerCaseContent, pos, 3))) {
 							currentStatementStart = pos;
 							currentStatement = new ScriptStatement(name="if", startPosition=pos, file=arguments.file, parent=parent);
 							parent = currentStatement;
@@ -205,7 +207,7 @@ component extends="AbstractParser" {
 							sb.append(mid(content, pos, 2));
 							pos = pos+2;
 							continue;
-						} else if (lowerC == "e" && reFindNoCase("else[ \t\r\n]+if[\t\r\n (]",  content, pos) == pos) {
+						} else if (lowerC == "e" && reFind("else[ \t\r\n]+if[\t\r\n (]",  lowerCaseContent, pos) == pos) {
 							currentStatementStart = pos;
 							currentStatement = new ScriptStatement(name="else if", startPosition=pos, file=arguments.file, parent=parent);
 							currentState = this.STATE.ELSE_IF_STATEMENT;
@@ -218,7 +220,7 @@ component extends="AbstractParser" {
 							sb.append(mid(content, pos, paren-pos));
 							pos = paren;
 							continue;
-						} else if (lowerC == "e" && reFindNoCase("else[\t\r\n (]",  content, pos) == pos) {
+						} else if (lowerC == "e" && reFind("else[\t\r\n (]",  lowerCaseContent, pos) == pos) {
 							currentStatementStart = pos;
 							currentStatement = new ScriptStatement(name="else", startPosition=pos, file=arguments.file, parent=parent);
 							parent = currentStatement;
@@ -241,7 +243,7 @@ component extends="AbstractParser" {
 							sb.append("var ");
 							pos = pos + 4;
 							continue;
-						} else if (lowerC == "r" && reFindNoCase("return[\t\r\n ;]", mid(content, pos, 7)) == pos) {
+						} else if (lowerC == "r" && reFind("return[\t\r\n ;]", mid(lowerCaseContent, pos, 7)) == pos) {
 							currentStatement = new ScriptStatement(name="return", startPosition=pos, file=arguments.file, parent=parent);
 							currentState = this.STATE.RETURN_STATEMENT;
 							addStatement(currentStatement);
@@ -251,7 +253,7 @@ component extends="AbstractParser" {
 							sb.append(mid(content, pos, 6));
 							pos = pos + 6;
 							continue;
-						} else if (lowerC == "f" && reFindNoCase("for\s*\(",  content, pos) == pos) {
+						} else if (lowerC == "f" && reFind("for\s*\(",  lowerCaseContent, pos) == pos) {
 							currentStatementStart = pos;
 							currentStatement = new ScriptStatement(name="for", startPosition=pos, file=arguments.file, parent=parent);
 							parent = currentStatement;
@@ -263,7 +265,7 @@ component extends="AbstractParser" {
 							sb.append(mid(content, pos, 3));
 							pos = pos+3;
 							continue;
-						} else if (lowerC == "w" && reFindNoCase("while\s*\(",  content, pos) == pos) {
+						} else if (lowerC == "w" && reFind("while\s*\(",  lowerCaseContent, pos) == pos) {
 							currentStatementStart = pos;
 							currentStatement = new ScriptStatement(name="while", startPosition=pos, file=arguments.file, parent=parent);
 							parent = currentStatement;
@@ -275,7 +277,7 @@ component extends="AbstractParser" {
 							sb.append(mid(content, pos, 5));
 							pos = pos+5;
 							continue;
-						} else if (lowerC == "d" && reFindNoCase("do\s*{",  content, pos) == pos) {
+						} else if (lowerC == "d" && reFind("do\s*{",  lowerCaseContent, pos) == pos) {
 							currentStatementStart = pos;
 							currentStatement = new ScriptStatement(name="do", startPosition=pos, file=arguments.file, parent=parent);
 							parent = currentStatement;
@@ -287,7 +289,7 @@ component extends="AbstractParser" {
 							sb.append(mid(content, pos, 2));
 							pos = pos+2;
 							continue;
-						} else if (lowerC == "t" && reFindNoCase("try\s*{",  content, pos) == pos) {
+						} else if (lowerC == "t" && reFind("try\s*{",  lowerCaseContent, pos) == pos) {
 							currentStatementStart = pos;
 							currentStatement = new ScriptStatement(name="try", startPosition=pos, file=arguments.file, parent=parent);
 							parent = currentStatement;
@@ -299,7 +301,7 @@ component extends="AbstractParser" {
 							sb.append(mid(content, pos, 3));
 							pos = pos+3;
 							continue;
-						} else if (lowerC == "c" && reFindNoCase("catch\s*\(",  content, pos) == pos) {
+						} else if (lowerC == "c" && reFind("catch\s*\(",  lowerCaseContent, pos) == pos) {
 							currentStatementStart = pos;
 							currentStatement = new ScriptStatement(name="catch", startPosition=pos, file=arguments.file, parent=parent);
 							parent = currentStatement;
@@ -311,7 +313,7 @@ component extends="AbstractParser" {
 							sb.append(mid(content, pos, 5));
 							pos = pos+5;
 							continue;
-						} else if (lowerC == "f" && reFindNoCase("finally\s*\{",  content, pos) == pos) {
+						} else if (lowerC == "f" && reFind("finally\s*\{",  lowerCaseContent, pos) == pos) {
 							currentStatementStart = pos;
 							currentStatement = new ScriptStatement(name="finally", startPosition=pos, file=arguments.file, parent=parent);
 							parent = currentStatement;
@@ -339,8 +341,33 @@ component extends="AbstractParser" {
 							braceOpen = find("{", content, pos+1);
 							semi = find(";", content, pos+1);
 							paren = find("(", content, pos+1);
-							quotePos = reFind("['""]", content, pos+1);
-							temp = reFindNoCase("[^a-zA-Z0-9_.]*function[\t\r\n ]+[a-zA-Z_]", content, pos);
+							
+							//quotePos = reFind("['""]", content, pos+1);
+							quotePos = find("""", content, pos+1);
+							temp = find("'", content, pos+1);
+							if (temp < quotePos) {
+								quotePos = temp;
+							}
+							temp = find("function", lowerCaseContent, pos);
+							if (arguments.endPosition != 0) {
+								//account for cfscript blocks 
+								if (temp > arguments.endPosition) {
+									temp = 0;
+								}
+								if (braceOpen > arguments.endPosition) {
+									braceOpen = 0;
+								}
+								if (semi > arguments.endPosition) {
+									semi = 0;
+								}
+								if (quotePos > arguments.endPosition) {
+									semi = 0;
+								}
+							}
+							
+							if (temp != 0) {
+								temp = reFind("[^a-zA-Z0-9_.]*function[\t\r\n ]+[a-zA-Z_]", lowerCaseContent, pos);
+							}
 							
 
 							if (temp == 0) {

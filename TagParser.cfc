@@ -26,7 +26,15 @@ component extends="AbstractParser" {
 			if ( (c >= 97 && c<= 122) || c == 47 || c == 33 || (c >= 65 && c <= 90) ) {
 				charPos = ltPos+1;
 			} else {
-				charPos = ReFind("[!/a-zA-Z]", content, ltPos+1);
+				//charPos = ReFind("[!/a-zA-Z]", content, ltPos+1); the following is faster
+				charPos = 0;
+				for(i=ltPos+1;i<=contentLength;i++) {
+					c = asc(mid(content, i, 1));
+					if ( (c >= 97 && c<= 122) || c == 47 || c == 33 || (c >= 65 && c <= 90) ) {
+						charPos = i;
+						break;
+					}
+				}
 			}
 		
 			//spacePos = ReFind("[[:space:]]", content, ltPos+1); the following is faster...
@@ -112,7 +120,6 @@ component extends="AbstractParser" {
 							//cfscript block
 							local.scriptBlockFile = new ScriptParser();
 							local.scriptBlockFile.parse(arguments.file, gtPos+1, endTagPos);
-							
 							for (local.scriptStatement in local.scriptBlockFile.getStatements()) {
 								if (!local.scriptStatement.hasParent()) {
 									tag.addChild(local.scriptStatement);

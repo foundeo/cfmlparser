@@ -16,13 +16,13 @@ component {
 		variables.fileLength = len(variables.fileContent);
 
 		if (arguments.parser == "detect") {
-			local.hasScriptComponentPattern = reFindNoCase("component[^>*]*{", variables.fileContent);
+			local.hasScriptComponentPattern = reFind("component[^>*]*{", getFileContentLowerCase());
 			if (local.hasScriptComponentPattern) {
 				local.componentString = mid(variables.fileContent, local.hasScriptComponentPattern, 10);
 				//must be component followed by space or {
 				local.hasScriptComponentPattern = trim(local.componentString) == "component" || local.componentString == "component{";
 			}
-			local.hasTagComponentPattern = !findNoCase("<" & "cfcomponent", variables.fileContent);
+			local.hasTagComponentPattern = !find("<" & "cfcomponent", getFileContentLowerCase());
 			if (local.hasScriptComponentPattern && !local.hasTagComponentPattern) {
 				//script cfc
 				variables.isScript = true;
@@ -31,12 +31,12 @@ component {
 			} else if (local.hasTagComponentPattern && local.hasScriptComponentPattern) {
 
 				//possible that cfcomponent it could be in a comment
-				if (reFindNoCase("//[^\n]*cfcomponent[^\n]*[\n]", variables.fileContent)) {
+				if (reFind("//[^\n]*cfcomponent[^\n]*[\n]", getFileContentLowerCase())) {
 					variables.isScript = true;
 				}
 				
-				else if (!reFindNoCase("<" & "cffunction", variables.fileContent) && !reFindNoCase("<" & "cfproperty", variables.fileContent)) {
-					//if it does not have a cffunction or cfproperty assume scritp
+				else if (!find("<" & "cffunction", getFileContentLowerCase()) && !find("<" & "cfproperty", getFileContentLowerCase())) {
+					//if it does not have a cffunction or cfproperty assume script
 					variables.isScript = true;
 				} else {
 					variables.isScript=false;
@@ -74,6 +74,13 @@ component {
 
 	function getFileContent() {
 		return variables.fileContent;
+	}
+
+	function getFileContentLowerCase() {
+		if (!variables.keyExists("fileContentLowerCase")) {
+			variables.fileContentLowerCase = lCase(getFileContent());
+		}
+		return variables.fileContentLowerCase;
 	}
 
 	function getFilePath() {
@@ -155,7 +162,6 @@ component {
 
 	public boolean function hasStatementAtPosition(numeric pos) {
 		var s = "";
-		var stmts = [];
 		for (s in getStatements()) {
 			if (s.getStartPosition() <= arguments.pos && s.getEndPosition() >=pos) {
 				return true;

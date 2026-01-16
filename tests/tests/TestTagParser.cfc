@@ -220,4 +220,45 @@ component extends="BaseTest" {
 
 	}
 
+	function testQueryWithSQLAttribute() {
+		var parser = getParser("tag/query-with-sql-attr.cfm");
+		var statements = parser.getStatements();
+		var tag = "";
+		var attr = "";
+		
+		$assert.isGT(arrayLen(statements), 0);
+		tag = statements[1];
+		$assert.isTrue(tag.isComment());
+
+		$assert.isGT(arrayLen(statements), 0);
+		tag = statements[2];
+		$assert.isEqual("cfoutput", tag.getName());
+		$assert.isTrue(tag.hasInnerContent());
+		$assert.isTrue(find("test1", tag.getInnerContent()));
+
+		tag = statements[3];
+		debug(tag.getVariables());
+		$assert.isEqual("cfquery", tag.getName());
+		attr = tag.getAttributes();
+		//has sql attribute
+		$assert.isTrue(structKeyExists(attr, "sql"));
+		//has name attribute
+		$assert.isTrue(structKeyExists(attr, "name"));
+		//name=test1
+		$assert.isEqual("test1", attr.name);
+		//should not have innerContent 
+		$assert.isFalse(tag.hasInnerContent());
+		$assert.isTrue(len(tag.getInnerContent()) == 0);
+
+		tag = statements[4];
+		debug(tag.getVariables());
+		$assert.isEqual("cfquery", tag.getName());
+		attr = tag.getAttributes();
+		$assert.isTrue(structKeyExists(attr, "name"));
+		//name=test2
+		
+		$assert.isEqual("test2", attr.name);
+	}
+
+
 }
