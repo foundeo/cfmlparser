@@ -10,9 +10,9 @@ component {
 	public function onRequest(targetPage) {
 		//boxlang doesnt like that we have a mapping also called /tests
 		if (find("run.cfm", arguments.targetPage)) {
-			include template="run.cfm";
+			include "run.cfm";
 		} else {
-			include template="adhoc.cfm";
+			include "adhoc.cfm";
 		}
 	}
 
