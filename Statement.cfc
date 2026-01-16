@@ -313,7 +313,12 @@ component accessors="false" {
 							variables.attributeStruct[attributeName] = attributeValue;
 							e = {expression=attributeValue, position=0};
 							e.position = getStartPosition() + len(getName()) + i - len(attributeValue) + e.position;
-							arrayAppend(variables.attributeExpressions, e);
+							
+							if (isScriptModeTag()) {
+								//only add to attributeExpressions if script as tag mode
+								//in legacy / normal tags unquoted attributes are converted to strings
+								arrayAppend(variables.attributeExpressions, e);
+							}
 							attributeName = "";
 							mode = "new";
 							attributeValue = "";
@@ -376,9 +381,12 @@ component accessors="false" {
 				if (quotedValue == "" && bracketStack == 0 && parenStack == 0) {
 					//end of unquoted expr value
 					variables.attributeStruct[attributeName] = attributeValue;
-					e = {expression=attributeValue, position=0};
-					e.position = e.position + getStartPosition() + len(getName()) + (len(variables.attributeContent)- len(attributeValue));
-					arrayAppend(variables.attributeExpressions, e);
+					if (isScriptModeTag()) {
+						//unquoted attr treated as expression in script mode tag, string in regular tags
+						e = {expression=attributeValue, position=0};
+						e.position = e.position + getStartPosition() + len(getName()) + (len(variables.attributeContent)- len(attributeValue));
+						arrayAppend(variables.attributeExpressions, e);
+					}
 				}
 			}
 			

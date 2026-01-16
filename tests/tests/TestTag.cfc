@@ -114,6 +114,7 @@ component extends="BaseTest" {
 		$assert.isEqual(attr.url, "go.cfm");
 		$assert.key(attr, "addtoken");
 		$assert.isEqual(attr.addtoken, "false");
+		$assert.isEqual(0, arrayLen(tag.getExpressions()), "Should be no expressions in plain tag mode here.");
 
 	}
 

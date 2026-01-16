@@ -86,6 +86,15 @@ component extends="BaseTest" {
 				$assert.isEqual("##boo##", local.attribs.value);
 
 			}
+			if (stmt.getTagName() == "cfhttp") {
+				local.attribs = stmt.getAttributes();
+				$assert.isEqual("getMethod()", local.attribs.method);
+				//should be an expression
+				local.exprs = stmt.getExpressions();
+				$assert.isEqual(1, arrayLen(local.exprs), "cfhttp tag should have 1 expression");
+				$assert.isEqual("getMethod()", local.exprs[1].expression, "cfhttp tag should have 1 expression: getMethod()");
+
+			}
 			if (stmt.isScriptModeTag()) {
 				scriptModeTags++;
 			}
