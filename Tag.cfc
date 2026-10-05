@@ -126,6 +126,7 @@ component extends="Statement" {
 			//  attributes 
 			if ( hasAttributes() && (NOT isInnerContentEvaluated() || !hasInnerContent()) ) {
 				getAttributes();
+				variables.expressions = variables.attributeExpressions;
 				return variables.attributeExpressions;
 			} else if ( isInnerContentEvaluated() && hasInnerContent() ) {
 				if ( hasAttributes() ) {

@@ -22,6 +22,24 @@ component extends="BaseTest" {
 		
 	}
 
+	function testCfmIsComponentFile() {
+		var f = getFile("tag/hello.cfm");
+
+		$assert.isFalse(f.isComponentFile());
+	}
+
+	function testCfcIsComponentFile() {
+		var f = getFile("script/basic.cfc");
+
+		$assert.isTrue(f.isComponentFile());
+	}
+
+	function testCfcTagIsComponentFile() {
+		var f = getFile("tag/basic.cfc");
+
+		$assert.isTrue(f.isComponentFile());
+	}
+
 	function testGetFileContentFromFile() {
 		var f = getFile("tag/hello.cfm");
 

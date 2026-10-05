@@ -22,7 +22,7 @@ component {
 				//must be component followed by space or {
 				local.hasScriptComponentPattern = trim(local.componentString) == "component" || local.componentString == "component{";
 			}
-			local.hasTagComponentPattern = !find("<" & "cfcomponent", getFileContentLowerCase());
+			local.hasTagComponentPattern = find("<" & "cfcomponent", getFileContentLowerCase());
 			if (local.hasScriptComponentPattern && !local.hasTagComponentPattern) {
 				//script cfc
 				variables.isScript = true;

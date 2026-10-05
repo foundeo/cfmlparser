@@ -345,7 +345,7 @@ component extends="AbstractParser" {
 							//quotePos = reFind("['""]", content, pos+1);
 							quotePos = find("""", content, pos+1);
 							temp = find("'", content, pos+1);
-							if (temp < quotePos) {
+							if (temp != 0 && temp < quotePos) {
 								quotePos = temp;
 							}
 							temp = find("function", lowerCaseContent, pos);

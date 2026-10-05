@@ -1,4 +1,7 @@
 {
+    "app":{
+        "cfengine":"lucee@6"
+    },
     "web":{
         "http":{
             "port":8337
